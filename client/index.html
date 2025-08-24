@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Tamagotchi Pro - Cuida y evoluciona criaturas mágicas">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/styles/main.css" as="style">
+    <link rel="preload" href="/src/main.js" as="script">
+    
+    <title>Tamagotchi Pro</title>
+    <link rel="stylesheet" href="/src/styles/main.css?v=2">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">🥚</div>
+            <div class="loading-text">Cargando Tamagotchi Pro...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Navigation Bar -->
+        <nav class="nav-bar">
+            <button class="nav-item active" data-view="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Inicio</span>
+            </button>
+            <button class="nav-item" data-view="creatures">
+                <span class="nav-icon">🐾</span>
+                <span class="nav-label">Criaturas</span>
+            </button>
+            <button class="nav-item" data-view="shop">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-label">Tienda</span>
+            </button>
+            <button class="nav-item" data-view="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Perfil</span>
+            </button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Home View -->
+            <section id="home-view" class="view active">
+                <!-- Botón temporal de logout para debugging -->
+                <div style="position: absolute; top: 10px; right: 10px; z-index: 50;">
+                    <button onclick="window.tamagotchiApp?.logout()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px;">
+                        🚪 Logout
+                    </button>
+                    <button onclick="window.tamagotchiApp?.testEggModal()" style="background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                        🥚 Test Eggs
+                    </button>
+                </div>
+                
+                <div class="creature-display">
+                    <canvas id="creature-canvas" width="300" height="300"></canvas>
+                    <div class="creature-info">
+                        <h2 id="creature-name">Mi Criatura</h2>
+                        <div class="creature-level">Nivel <span id="creature-level">1</span></div>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <div class="stat-bar">
+                        <div class="stat-label">
+                            <span class="stat-icon">🍎</span>
+                            <span>Hambre</span>
+                        </div>
+                        <div class="stat-progress">
+                            <div class="stat-fill" id="hunger-bar" style="width: 80%"></div>
+                        </div>
+                        <span class="stat-value" id="hunger-value">80</span>
+                    </div>
+
+                    <div class="stat-bar">
+                        <div class="stat-label">
+                            <span class="stat-icon">😊</span>
+                            <span>Felicidad</span>
+                        </div>
+                        <div class="stat-progress">
+                            <div class="stat-fill" id="happiness-bar" style="width: 70%"></div>
+                        </div>
+                        <span class="stat-value" id="happiness-value">70</span>
+                    </div>
+
+                    <div class="stat-bar">
+                        <div class="stat-label">
+                            <span class="stat-icon">❤️</span>
+                            <span>Salud</span>
+                        </div>
+                        <div class="stat-progress">
+                            <div class="stat-fill" id="health-bar" style="width: 100%"></div>
+                        </div>
+                        <span class="stat-value" id="health-value">100</span>
+                    </div>
+
+                    <div class="stat-bar">
+                        <div class="stat-label">
+                            <span class="stat-icon">⚡</span>
+                            <span>Energía</span>
+                        </div>
+                        <div class="stat-progress">
+                            <div class="stat-fill" id="energy-bar" style="width: 90%"></div>
+                        </div>
+                        <span class="stat-value" id="energy-value">90</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="action-btn feed-btn" id="feed-btn">
+                        <span class="btn-icon">🍎</span>
+                        <span class="btn-text">Alimentar</span>
+                    </button>
+                    <button class="action-btn play-btn" id="play-btn">
+                        <span class="btn-icon">🎮</span>
+                        <span class="btn-text">Jugar</span>
+                    </button>
+                    <button class="action-btn clean-btn" id="clean-btn">
+                        <span class="btn-icon">🧼</span>
+                        <span class="btn-text">Limpiar</span>
+                    </button>
+                    <button class="action-btn sleep-btn" id="sleep-btn">
+                        <span class="btn-icon">😴</span>
+                        <span class="btn-text">Dormir</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Creatures View -->
+            <section id="creatures-view" class="view">
+                <div class="view-header">
+                    <h1>Mis Criaturas</h1>
+                    <button class="create-btn" id="create-creature-btn">
+                        <span>+</span> Nueva Criatura
+                    </button>
+                </div>
+                <div class="creatures-grid" id="creatures-grid">
+                    <!-- Creatures will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Shop View -->
+            <section id="shop-view" class="view">
+                <div class="view-header">
+                    <h1>Tienda</h1>
+                </div>
+                <div class="shop-categories">
+                    <button class="category-btn active" data-category="food">Comida</button>
+                    <button class="category-btn" data-category="toys">Juguetes</button>
+                    <button class="category-btn" data-category="decorations">Decoraciones</button>
+                </div>
+                <div class="shop-items" id="shop-items">
+                    <!-- Shop items will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Profile View -->
+            <section id="profile-view" class="view">
+                <div class="view-header">
+                    <h1>Perfil</h1>
+                </div>
+                <div class="profile-content">
+                    <div class="user-info">
+                        <div class="avatar">👤</div>
+                        <h2 id="username">Usuario</h2>
+                        <p id="user-email">email@ejemplo.com</p>
+                    </div>
+                    <div class="achievements-section">
+                        <h3>Logros</h3>
+                        <div class="achievements-grid" id="achievements-grid">
+                            <!-- Achievements will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Configuración</h3>
+                        <div class="settings-options">
+                            <label class="setting-item">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span>Notificaciones</span>
+                            </label>
+                            <label class="setting-item">
+                                <input type="checkbox" id="sound-toggle" checked>
+                                <span>Sonidos</span>
+                            </label>
+                            <button class="logout-btn" id="logout-btn">Cerrar Sesión</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="auth-title">Iniciar Sesión</h2>
+                <button class="close-btn" id="close-auth-modal">&times;</button>
+            </div>
+            <form id="auth-form">
+                <div class="form-group" id="username-group" style="display: none;">
+                    <label for="username-input">Nombre de Usuario</label>
+                    <input type="text" id="username-input" name="username" placeholder="Ingresa tu nombre de usuario">
+                </div>
+                <div class="form-group">
+                    <label for="email-input">Email</label>
+                    <input type="email" id="email-input" name="email" placeholder="Ingresa tu email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password-input">Contraseña</label>
+                    <input type="password" id="password-input" name="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="submit-btn" id="auth-submit">Iniciar Sesión</button>
+            </form>
+            <div class="auth-switch">
+                <p id="auth-switch-text">¿No tienes cuenta? <a href="#" id="auth-switch-link">Regístrate</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Creature Modal -->
+    <div id="create-creature-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Crear Nueva Criatura</h2>
+                <button class="close-btn" id="close-create-modal">&times;</button>
+            </div>
+            <form id="create-creature-form">
+                <div class="form-group">
+                    <label for="creature-name-input">Nombre de la Criatura</label>
+                    <input type="text" id="creature-name-input" placeholder="Ingresa un nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Especie</label>
+                    <div class="species-grid">
+                        <label class="species-option">
+                            <input type="radio" name="species" value="verdania" required>
+                            <div class="species-card">
+                                <div class="species-icon">🌿</div>
+                                <div class="species-name">Verdania</div>
+                                <div class="species-type">Naturaleza</div>
+                            </div>
+                        </label>
+                        <label class="species-option">
+                            <input type="radio" name="species" value="ignius" required>
+                            <div class="species-card">
+                                <div class="species-icon">🔥</div>
+                                <div class="species-name">Ignius</div>
+                                <div class="species-type">Fuego</div>
+                            </div>
+                        </label>
+                        <label class="species-option">
+                            <input type="radio" name="species" value="aquarina" required>
+                            <div class="species-card">
+                                <div class="species-icon">💧</div>
+                                <div class="species-name">Aquarina</div>
+                                <div class="species-type">Agua</div>
+                            </div>
+                        </label>
+                        <label class="species-option">
+                            <input type="radio" name="species" value="voltus" required>
+                            <div class="species-card">
+                                <div class="species-icon">⚡</div>
+                                <div class="species-name">Voltus</div>
+                                <div class="species-type">Eléctrico</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn">Crear Criatura</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Egg Selection Modal (New) -->
+    <div id="egg-selection-modal" class="modal">
+        <div class="modal-content egg-modal">
+            <div class="modal-header">
+                <h2>✨ ¡Elige tu Primer Huevo! ✨</h2>
+                <p class="egg-subtitle">Cada huevo contiene una sorpresa mágica...</p>
+            </div>
+            <div class="eggs-container">
+                <div class="egg-option" data-egg="1">
+                    <div class="egg-shell">
+                        <div class="egg-emoji">🥚</div>
+                        <div class="egg-sparkles">✨</div>
+                    </div>
+                    <div class="egg-label">Huevo Místico</div>
+                </div>
+                <div class="egg-option" data-egg="2">
+                    <div class="egg-shell">
+                        <div class="egg-emoji">🥚</div>
+                        <div class="egg-sparkles">⭐</div>
+                    </div>
+                    <div class="egg-label">Huevo Estelar</div>
+                </div>
+                <div class="egg-option" data-egg="3">
+                    <div class="egg-shell">
+                        <div class="egg-emoji">🥚</div>
+                        <div class="egg-sparkles">💎</div>
+                    </div>
+                    <div class="egg-label">Huevo Cristalino</div>
+                </div>
+                <div class="egg-option" data-egg="4">
+                    <div class="egg-shell">
+                        <div class="egg-emoji">🥚</div>
+                        <div class="egg-sparkles">🌟</div>
+                    </div>
+                    <div class="egg-label">Huevo Dorado</div>
+                </div>
+            </div>
+            <div class="egg-hint">
+                <p>💡 <strong>Pista:</strong> Cada huevo esconde una criatura diferente. ¡Elige con el corazón!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hatching Animation Modal -->
+    <div id="hatching-modal" class="modal">
+        <div class="modal-content hatching-content">
+            <div class="hatching-animation">
+                <div class="egg-cracking">
+                    <div class="egg-base">🥚</div>
+                    <div class="crack-effect"></div>
+                </div>
+                <div class="hatching-text">
+                    <h2>¡Tu huevo está eclosionando!</h2>
+                    <div class="loading-dots">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="toast">
+        <div class="toast-content">
+            <span class="toast-icon">ℹ️</span>
+            <span class="toast-message">Mensaje de notificación</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+
