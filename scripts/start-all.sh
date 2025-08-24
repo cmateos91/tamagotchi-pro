@@ -19,13 +19,14 @@ cleanup() {
 trap cleanup SIGINT
 
 echo "🚀 Iniciando servidor..."
-cd server && npm run dev &
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT/server" && npm run dev &
 SERVER_PID=$!
 
 sleep 3
 
 echo "🎮 Iniciando cliente..."
-cd ../client && npm run dev &
+cd "$PROJECT_ROOT/client" && npm run dev &
 CLIENT_PID=$!
 
 echo ""
