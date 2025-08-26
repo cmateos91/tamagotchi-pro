@@ -1,4 +1,14 @@
-// Tipos compartidos entre frontend y backend
+/**
+ * Shared Types for Tamagotchi Pro
+ * Used across frontend, backend, and AI development
+ * 
+ * Key Entities:
+ * - User: Authentication and profile
+ * - Creature: Core game entity with 8 species, 5 stages
+ * - Battle: PvP combat system
+ * - Achievement: Progression rewards
+ * - GameEvent: Timed events and rewards
+ */
 
 export interface User {
   id: string;
@@ -67,17 +77,27 @@ export enum CreatureMood {
   EMOCIONADO = 'emocionado'
 }
 
+// Core stats interface - all values 0-100
 export interface CreatureStats {
-  hunger: number; // 0-100
-  happiness: number; // 0-100
-  health: number; // 0-100
-  energy: number; // 0-100
-  cleanliness: number; // 0-100
-  intelligence: number; // 0-100
-  strength: number; // 0-100
-  agility: number; // 0-100
+  hunger: number;      // Decays over time, feed to restore
+  happiness: number;   // Affects evolution, play to restore  
+  health: number;      // Can get sick, heal to restore
+  energy: number;      // Depleted by actions, sleep to restore
+  cleanliness: number; // Decays over time, clean to restore
+  intelligence: number; // Training stat for battles
+  strength: number;    // Combat stat for battles
+  agility: number;     // Speed stat for battles
 }
 
+// Validation ranges for stats
+export const STAT_RANGES = {
+  MIN: 0,
+  MAX: 100,
+  CRITICAL: 20,  // Below this triggers warnings
+  GOOD: 70       // Above this is considered healthy
+} as const;
+
+// Main creature entity - central to game mechanics
 export interface Creature {
   id: string;
   userId: string;
@@ -89,17 +109,26 @@ export interface Creature {
   stats: CreatureStats;
   level: number;
   experience: number;
-  age: number; // en horas
+  age: number;            // Age in hours since birth
   birthDate: Date;
-  lastFed: Date;
-  lastPlayed: Date;
-  lastCleaned: Date;
-  isAlive: boolean;
-  evolutionPoints: number;
-  traits: string[];
+  lastFed: Date;         // For hunger decay calculation
+  lastPlayed: Date;      // For happiness decay
+  lastCleaned: Date;     // For cleanliness decay
+  isAlive: boolean;      // Death state (irreversible)
+  evolutionPoints: number; // Progress toward next stage
+  traits: string[];      // Special characteristics
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Evolution requirements by stage
+export const EVOLUTION_REQUIREMENTS = {
+  [CreatureStage.EGG]: { age: 24, stats: {} },
+  [CreatureStage.BABY]: { age: 72, stats: { happiness: 60, health: 60 } },
+  [CreatureStage.TEEN]: { age: 168, stats: { happiness: 70, intelligence: 50 } },
+  [CreatureStage.ADULT]: { age: 336, stats: { happiness: 80, strength: 70 } },
+  [CreatureStage.ELDER]: { age: 720, stats: { happiness: 90, intelligence: 90 } }
+} as const;
 
 export interface CreatureAction {
   type: 'feed' | 'play' | 'clean' | 'sleep' | 'train' | 'heal';
@@ -175,15 +204,35 @@ export interface TradeOffer {
   expiresAt: Date;
 }
 
-// Tipos para batallas
+// Battle system types
+export interface Battle {
+  id: string;
+  challenger: string;     // User ID
+  opponent: string;       // User ID  
+  challengerCreature: string; // Creature ID
+  opponentCreature: string;   // Creature ID
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  result?: BattleResult;
+  createdAt: Date;
+  completedAt?: Date;
+}
+
 export interface BattleResult {
   winnerId: string;
   loserId: string;
   winnerCreatureId: string;
   loserCreatureId: string;
   experienceGained: number;
-  battleLog: string[];
-  duration: number; // en segundos
+  battleLog: string[];    // Turn-by-turn combat log
+  duration: number;       // Battle duration in seconds
+}
+
+// Combat calculations
+export interface CombatStats {
+  attack: number;   // Derived from strength + level
+  defense: number;  // Derived from health + level  
+  speed: number;    // Derived from agility + level
+  accuracy: number; // Derived from intelligence + level
 }
 
 export interface Leaderboard {

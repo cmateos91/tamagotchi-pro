@@ -10,8 +10,16 @@ class TamagotchiApp {
     this.canvas = null;
     this.ctx = null;
     this.animationFrame = null;
+    this.debugMode = localStorage.getItem('tamagotchi_debug') === 'true';
     
     this.init();
+  }
+
+  // Debug helper
+  debug(...args) {
+    if (this.debugMode) {
+      console.log('🔍 DEBUG:', ...args);
+    }
   }
 
   async init() {
@@ -39,6 +47,7 @@ class TamagotchiApp {
     this.startAnimationLoop();
     
     console.log('✅ Tamagotchi Pro inicializado correctamente');
+    this.debug('Debug mode enabled - use localStorage.setItem("tamagotchi_debug", "true") to enable');
   }
 
   showLoading() {
@@ -489,15 +498,15 @@ class TamagotchiApp {
   async handleAuth(e) {
     e.preventDefault();
     
-    console.log('🔍 Debug - Evento del formulario:', e);
-    console.log('🔍 Debug - Target del formulario:', e.target);
+    this.debug('Evento del formulario:', e);
+    this.debug('Target del formulario:', e.target);
     
     // Múltiples formas de capturar los datos para debug
     const emailInput = document.getElementById('email-input');
     const passwordInput = document.getElementById('password-input');
     const usernameInput = document.getElementById('username-input');
     
-    console.log('🔍 Debug - Elementos encontrados:', {
+    this.debug('Elementos encontrados:', {
       emailInput: emailInput,
       passwordInput: passwordInput,
       usernameInput: usernameInput
@@ -507,11 +516,11 @@ class TamagotchiApp {
     const password = passwordInput ? passwordInput.value : '';
     const username = usernameInput ? usernameInput.value : '';
     
-    console.log('🔍 Debug - Valores capturados:', { email, password, username });
+    this.debug('Valores capturados:', { email, password, username });
     
     // También probar con FormData
     const formData = new FormData(e.target);
-    console.log('🔍 Debug - FormData entries:');
+    this.debug('FormData entries:');
     for (let [key, value] of formData.entries()) {
       console.log(`  ${key}: ${value}`);
     }
@@ -538,8 +547,8 @@ class TamagotchiApp {
       data.username = username;
     }
     
-    console.log('🚀 Debug - Datos a enviar:', data);
-    console.log('🚀 Debug - Endpoint:', endpoint);
+    this.debug('Datos a enviar:', data);
+    this.debug('Endpoint:', endpoint);
 
     try {
       const response = await this.apiCall(endpoint, 'POST', data);
@@ -721,10 +730,10 @@ class TamagotchiApp {
     
     if (data) {
       options.body = JSON.stringify(data);
-      console.log('🌐 Debug - Body being sent:', options.body);
+      this.debug('Body being sent:', options.body);
     }
     
-    console.log('🌐 Debug - API Call:', {
+    this.debug('API Call:', {
       url: `${this.apiBase}${endpoint}`,
       method,
       headers: options.headers,
@@ -733,12 +742,12 @@ class TamagotchiApp {
     
     const response = await fetch(`${this.apiBase}${endpoint}`, options);
     
-    console.log('🌐 Debug - Response status:', response.status);
-    console.log('🌐 Debug - Response headers:', response.headers);
+    this.debug('Response status:', response.status);
+    this.debug('Response headers:', response.headers);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('🌐 Debug - Error response:', errorText);
+      this.debug('Error response:', errorText);
       
       // Intentar parsear el JSON de error para obtener mensaje específico
       try {
@@ -761,7 +770,7 @@ class TamagotchiApp {
     }
     
     const result = await response.json();
-    console.log('🌐 Debug - Response data:', result);
+    this.debug('Response data:', result);
     return result;
   }
 
